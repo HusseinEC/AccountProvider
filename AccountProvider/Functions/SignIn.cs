@@ -31,15 +31,36 @@ namespace AccountProvider.Functions
 
             if (body != null)
             {
-                UserRegistrationRequest urr = null!;
+                UserLogInRequest ulr = null!;
 
                 try
                 {
-                    urr = JsonConvert.DeserializeObject<UserRegistrationRequest>(body)!;
+                    ulr = JsonConvert.DeserializeObject<UserLogInRequest>(body)!;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"JsonConvert.DeserializeObject<UserRegistrationRequest> :: {ex.Message}");
+                    _logger.LogError($"JsonConvert.DeserializeObject<UserLogInRequest> :: {ex.Message}");
+                }
+
+                if (ulr != null && !string.IsNullOrEmpty(ulr.Email) && !string.IsNullOrEmpty(ulr.Password))
+                {
+                    try
+                    {
+                        var result = await _signInManager.PasswordSignInAsync(ulr.Email, ulr.Password, ulr.IsPersistent, false);
+                        if (result.Succeeded)
+                        {
+                            // Get token from TokenProvider
+
+                            return new OkObjectResult("accesstoken");
+                        }
+
+                        return new UnauthorizedResult();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"JsonConvert.DeserializeObject<UserRegistrationRequest> :: {ex.Message}");
+                    }
                 }
             }
 

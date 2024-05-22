@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace AccountProvider.Functions
 {
@@ -60,6 +61,18 @@ namespace AccountProvider.Functions
                             if (result.Succeeded)
                             {
                                 // send verification code
+                                try
+                                {
+                                    using var https = new HttpClient();
+                                    StringContent content = new StringContent(JsonConvert.SerializeObject(new { Email = userAccount }), Encoding.UTF8, "application/json");
+                                    var response = await https.PostAsync("https://verificationprovider.silicon.azurewebsite.net/api/generate", content);
+                                }
+
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError($"http.PostAsync :: {ex.Message}");
+                                }
+
                                 return new OkResult();
                             }
                         }
