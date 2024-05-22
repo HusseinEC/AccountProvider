@@ -9,9 +9,10 @@ using Newtonsoft.Json;
 
 namespace AccountProvider.Functions
 {
-    public class SignIn(ILogger<SignIn> logger, SignInManager<UserAccount> signInManager)
+    public class SignIn(ILogger<SignIn> logger, SignInManager<UserAccount> signInManager, UserManager<UserAccount> userManager)
     {
         private readonly ILogger<SignIn> _logger = logger;
+        private readonly UserManager<UserAccount> _userManager = userManager;
         private readonly SignInManager<UserAccount> _signInManager = signInManager;
 
         [Function("SignIn")]
@@ -46,7 +47,8 @@ namespace AccountProvider.Functions
                 {
                     try
                     {
-                        var result = await _signInManager.PasswordSignInAsync(ulr.Email, ulr.Password, ulr.IsPersistent, false);
+                        var userAccount = await _userManager.FindByEmailAsync(ulr.Email);
+                        var result = await _signInManager.CheckPasswordSignInAsync(userAccount!, ulr.Password, false);
                         if (result.Succeeded)
                         {
                             // Get token from TokenProvider
